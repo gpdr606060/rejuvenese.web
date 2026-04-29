@@ -1,1 +1,2 @@
 rejuvenese.shop
+	v=DMARC1; p=quarantine; adkim=r; aspf=r; rua=mailto:dmarc_rua@onsecureserver.net;
