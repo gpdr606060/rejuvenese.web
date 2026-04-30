@@ -1,1 +1,2 @@
-rejuvenese.shop
+$ dig rejuvenese.shop +noall +answer -t A
+> rejuvenese.shop    3600    IN A     	102.199.1.232
