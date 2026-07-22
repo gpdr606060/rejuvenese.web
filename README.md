@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -90,6 +90,31 @@ textarea{resize:vertical;min-height:60px}
   <div class="progress-wrap">
     <span class="progress-label" id="prog-label">Completado 0%</span>
     <div class="progress-bar-outer"><div class="progress-bar-inner" id="prog-bar" style="width:0%"></div></div>
+  </div>
+
+  <!-- Certificado de valoración -->
+  <div class="card" style="border-color:#c9a96e;background:linear-gradient(135deg,#fdf9f2 0%,#fdf6ec 100%);">
+    <div class="card-title" style="color:#7a5c20;border-bottom-color:#e6d4b0;">
+      <span class="dot" style="background:#c9a96e"></span> Certificado de valoración — leer antes de continuar
+    </div>
+    <p style="font-size:13px;line-height:1.75;color:#5a4010;margin-bottom:1rem;">
+      Antes de completar este formulario, confirme que ha leído y acepta las siguientes condiciones relacionadas con su valoración:
+    </p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1rem;">
+      <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid #e6d4b0;border-radius:8px;background:white;cursor:pointer;">
+        <input type="checkbox" id="cert1" style="margin-top:2px;width:17px;height:17px;flex-shrink:0;accent-color:#1a3a5c;cursor:pointer;">
+        <span style="font-size:13px;line-height:1.6;color:#5a4010;">
+          Entiendo y acepto que el <strong style="color:#1a3a5c;">costo de la valoración no es reembolsable</strong>, independientemente del resultado de la consulta o de la decisión de proceder o no con el procedimiento.
+        </span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid #e6d4b0;border-radius:8px;background:white;cursor:pointer;">
+        <input type="checkbox" id="cert2" style="margin-top:2px;width:17px;height:17px;flex-shrink:0;accent-color:#1a3a5c;cursor:pointer;">
+        <span style="font-size:13px;line-height:1.6;color:#5a4010;">
+          Entiendo que la valoración podrá realizarse de forma <strong style="color:#1a3a5c;">presencial o virtual</strong>, según las necesidades y criterio del médico o del paciente, y que ambas modalidades tienen la misma validez clínica.
+        </span>
+      </label>
+    </div>
+    <p style="font-size:11.5px;color:#9aa3b0;margin-top:.25rem;">Debe marcar ambas casillas para continuar con el formulario.</p>
   </div>
 
   <!-- Datos personales -->
@@ -353,16 +378,18 @@ document.getElementById('btn-clear').addEventListener('click', () => {
 // Progress
 function updateProgress() {
   const ids = ['f-nombre','f-dob','f-tel','f-email','f-cedula','sign-nombre','sign-cedula'];
-  let filled = 0, total = ids.length + 3 + 6;
+  let filled = 0, total = ids.length + 3 + 6 + 2;
   ids.forEach(id => { const el = document.getElementById(id); if (el && el.value.trim()) filled++; });
   ['pat','nopat','ac'].forEach(n => { if (document.querySelectorAll(`input[name="${n}"]:checked`).length > 0) filled++; });
   for (let i = 1; i <= 6; i++) { const el = document.getElementById('ind' + i); if (el && el.checked) filled++; }
+  ['cert1','cert2'].forEach(id => { const el = document.getElementById(id); if (el && el.checked) filled++; });
   const pct = Math.round(filled / total * 100);
   document.getElementById('prog-bar').style.width = pct + '%';
   document.getElementById('prog-label').textContent = 'Completado ' + pct + '%';
 }
 document.querySelectorAll('input,textarea,select').forEach(el => { el.addEventListener('input', updateProgress); el.addEventListener('change', updateProgress); });
 for (let i = 1; i <= 6; i++) { const el = document.getElementById('ind' + i); if (el) el.addEventListener('change', updateProgress); }
+['cert1','cert2'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('change', updateProgress); });
 
 // Toast
 function showToast(msg, dur = 4000) {
@@ -447,6 +474,32 @@ function buildPDF() {
     doc.text(lines, PL + 7, y);
     y += lines.length * 4.5 + 2;
   }
+
+  // ── Certificado de valoración ──
+  const cert1 = !!(document.getElementById('cert1') && document.getElementById('cert1').checked);
+  const cert2 = !!(document.getElementById('cert2') && document.getElementById('cert2').checked);
+  doc.setFillColor(253, 246, 236);
+  doc.roundedRect(PL, y, CW, 30, 1.5, 1.5, 'F');
+  doc.setDrawColor(201, 169, 110); doc.setLineWidth(0.5);
+  doc.roundedRect(PL, y, CW, 30, 1.5, 1.5, 'S');
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(122, 92, 32);
+  doc.text('CERTIFICADO DE VALORACIÓN', PL + 3, y + 5.5);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(80, 64, 16);
+  // checkbox 1
+  doc.setDrawColor(26, 58, 92); doc.setLineWidth(0.5);
+  doc.rect(PL + 3, y + 9, 3.5, 3.5);
+  if (cert1) { doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(26,58,92); doc.text('X', PL + 3.8, y + 12); }
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(80, 64, 16);
+  const c1lines = doc.splitTextToSize('El costo de la valoración no es reembolsable, independientemente del resultado o de la decisión de proceder con el procedimiento.', CW - 12);
+  doc.text(c1lines, PL + 9, y + 12.5);
+  // checkbox 2
+  doc.rect(PL + 3, y + 19, 3.5, 3.5);
+  if (cert2) { doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(26,58,92); doc.text('X', PL + 3.8, y + 22); }
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(80, 64, 16);
+  const c2lines = doc.splitTextToSize('La valoración podrá realizarse de forma presencial o virtual, según las necesidades del médico o del paciente, con la misma validez clínica.', CW - 12);
+  doc.text(c2lines, PL + 9, y + 22.5);
+  y += 35;
+  div();
 
   // ── Sections ──
   secTitle('1. Datos personales');
